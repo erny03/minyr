@@ -2,10 +2,11 @@ package main
 
 import (
 	"os"
+	"strconv"
 	"log"
 	"io"
 	"strings"
-	"github.com/uia-worker/misc/conv"
+	"github.com/erny03/minyr/conv"
 )	
 
 func main() {
@@ -31,13 +32,26 @@ func main() {
 		bytesCount++
 		//log.Printf("%c ", buffer[:n])
 		if buffer[0] == 0x0A {
-	           log.Println(string(linebuf))
 		   // Her
 		   elementArray := strings.Split(string(linebuf), ";")
 		   if len(elementArray) > 3 {
-			 celsius := elementArray[3]
-			 fahr := conv.CelsiusToFahrenheit(celsius)
-		         log.Println(elementArray[3])
+			 if elementArray[3] == "Lufttemperatur"{
+			 	log.Println(string(linebuf)) 
+			 }
+		 	 if elementArray[3] != "Lufttemperatur" && elementArray[3] != ""{
+				 celsius := elementArray[3]
+				 celsiusFloat, err := strconv.ParseFloat(celsius, 64)
+				 fahr := conv.CelsiusToFahrenheit(celsiusFloat)
+				 fahrString:= strconv.FormatFloat(fahr, 'f',2, 64)
+				 if err != nil{
+					panic(err)
+ 				 }
+
+		        	 log.Println(elementArray[0] + ";" +  elementArray[1] + ";" + elementArray[2] + ";" + fahrString)
+			 }
+			if elementArray[3] == ""{
+				log.Println(string(linebuf))
+			}
 	   	   }
                    linebuf = nil		   
 		} else {
