@@ -3,23 +3,34 @@ package main
 import (
 	"os"
 	"strconv"
+	"fmt"
 	"log"
 	"bufio"
 	"io"
 	"strings"
 	"github.com/erny03/minyr/conv"
+	//"github.com/erny03/minyr/yr"
 )	
 
+
+const (
+	celsiusFil = "kjevik-temp-celsius-20220318-20230318.csv"
+	fahrFil = "kjevik-temp-fahr-20220318-20230318.csv"
+)
+
 func main() {
+
+	_, error := os.Stat(fahrFil)
+
 	//src, err := os.Open("table.csv")
-	src, err := os.Open("kjevik-temp-celsius-20220318-20230318.csv")
+	src, err := os.Open(celsiusFil)
 	if err != nil {
         	log.Fatal(err)
 	}
 	defer src.Close()
         	log.Println(src)
-        
-	fahrFile, err := os.Create("kjevik-temp-fahr-20220318-20230318.csv")
+
+	fahrFile, err := os.Create(fahrFil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -27,6 +38,36 @@ func main() {
 	defer fahrFile.Close()
 
 	writer := bufio.NewWriter(fahrFile)
+
+	var totalCelsius float64
+	var totalLinjer float64
+	var input string
+	var totalFahr float64
+
+	fmt.Println("Skriv convert for aa oversette, skriv quit for aa avslutte.")
+
+	scanner := bufio.NewScanner(os.Stdin)
+
+	for scanner.Scan() {
+	input = scanner.Text()
+
+
+	if input != "convert" && input != "j" && input != "average" && input != "c" && input != "f" && input != "quit" && input != "n" {
+		fmt.Println("Ikke en gylding kommando.")
+	}
+
+	if input == "convert" && !os.IsNotExist(error){
+		fmt.Println("Filen eksisterer allerede. Vil du generere filen om igjen? (j/n).")
+	}
+
+	if input == "n" {
+		fmt.Println("Nedlastning av ny fil stopped, program avsluttes.")
+		break
+	}
+	if input == "j"{
+
+
+
 
 	var buffer []byte
 	var linebuf []byte // nil
@@ -67,6 +108,10 @@ func main() {
 				 if err != nil {
 					log.Fatal(err)
 				 }
+				 totalCelsius += celsiusFloat
+				 totalLinjer ++
+				 totalFahr += fahr
+
 			}
 			if elementArray[3] == ""{
 				log.Println("Data er basert paa gyldig (per 18.03.2023) (CC BY 4.0) fra Meteorologisk insitutt (MET); Endringen er gjort av Erik Nygaard \n")
@@ -77,18 +122,29 @@ func main() {
 			}
 
 	   	   }
-                   linebuf = nil		   
+                   linebuf = nil
 		} else {
                    linebuf = append(linebuf, buffer[0])
-		}	
+		}
 		//log.Println(string(linebuf))
 		if err == io.EOF {
 			break
 		}
 	}
-	//
-	err = writer.Flush()
-	if err != nil{
-		log.Fatal(err)
+
+		log.Println("For gjennomsnitts celsius temperatur skriv c, for fahrenheit skriv f")
+		log.Println("For aa avslutte programmet skriv quit")
+
+	} else if input == "f" {
+		avgFahr := strconv.FormatFloat(totalFahr/totalLinjer, 'f', 2, 64)
+		log.Println(avgFahr)
+	} else if input == "c" {
+		avgCelsius := strconv.FormatFloat(totalCelsius/totalLinjer, 'f', 2, 64)
+		log.Println(avgCelsius)
+	} else if input == "quit" {
+		break
 	}
 }
+
+}
+
